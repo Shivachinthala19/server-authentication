@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  LogOut, Plus, Trash2, CheckCircle2, Circle, 
-  User, Shield, Key, Eye, EyeOff, ClipboardList, Clock, 
+import {
+  LogOut, Plus, Trash2, CheckCircle2, Circle,
+  User, Shield, Key, Eye, EyeOff, ClipboardList, Clock,
   Sparkles, CheckSquare, AlertCircle
 } from 'lucide-react';
 
@@ -14,38 +14,39 @@ const Dashboard = () => {
   const [taskError, setTaskError] = useState('');
   const [showToken, setShowToken] = useState(false);
 
-  // Load user tasks from protected endpoint
-  const fetchTasks = async () => {
-    setLoadingTasks(true);
-    setTaskError('');
-    try {
-      const res = await fetch('/api/tasks', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders(),
-        },
-      });
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          logout(); // Force redirect
-          return;
-        }
-        throw new Error('Could not retrieve tasks from protected API.');
-      }
-
-      const data = await res.json();
-      setTasks(data);
-    } catch (err) {
-      setTaskError(err.message || 'Error occurred while loading tasks.');
-    } finally {
-      setLoadingTasks(false);
-    }
-  };
-
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    let isMounted = true;
+    const loadTasks = async () => {
+      setLoadingTasks(true);
+      setTaskError('');
+      try {
+        const res = await fetch('/api/tasks', {
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+          },
+        });
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            logout();
+            return;
+          }
+          throw new Error('Could not retrieve tasks from protected API.');
+        }
+
+        const data = await res.json();
+        if (isMounted) setTasks(data);
+      } catch (err) {
+        if (isMounted) setTaskError(err.message || 'Error occurred while loading tasks.');
+      } finally {
+        if (isMounted) setLoadingTasks(false);
+      }
+    };
+
+    loadTasks();
+    return () => { isMounted = false; };
+  }, [logout, getAuthHeaders]);
 
   // Add a task
   const handleAddTask = async (e) => {
@@ -129,7 +130,7 @@ const Dashboard = () => {
           .join('')
       );
       return JSON.parse(jsonPayload);
-    } catch (e) {
+    } catch {
       return null;
     }
   };
@@ -143,8 +144,8 @@ const Dashboard = () => {
       <header className="dashboard-header glass-panel">
         <div className="header-brand">
           <Sparkles className="brand-logo" />
-          <span className="brand-name">ShieldAuth</span>
-          <span className="badge-secure">SSL & JWT Verified</span>
+          <span className="brand-name">AuthFlow</span>
+
         </div>
         <div className="header-actions">
           <div className="user-profile">
@@ -170,15 +171,15 @@ const Dashboard = () => {
             <Shield className="card-icon text-indigo" />
             <h2>Security Diagnostics</h2>
           </div>
-          <p className="card-subtitle">Inspect your cryptographically signed Client JSON Web Token</p>
+          <p className="card-subtitle">Inspect your cryptographically</p>
 
           <div className="token-viewer">
             <div className="token-viewer-header">
               <span className="token-label">
                 <Key className="inline-icon" /> active_token.jwt
               </span>
-              <button 
-                onClick={() => setShowToken(!showToken)} 
+              <button
+                onClick={() => setShowToken(!showToken)}
                 className="btn-toggle-token"
               >
                 {showToken ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -277,7 +278,7 @@ const Dashboard = () => {
               <ul className="tasks-list">
                 {tasks.map((task) => (
                   <li key={task._id} className={`task-item ${task.completed ? 'completed' : ''}`}>
-                    <button 
+                    <button
                       onClick={() => handleToggleTask(task._id, task.completed)}
                       className="task-toggle"
                       title={task.completed ? 'Mark Incomplete' : 'Mark Completed'}
@@ -289,7 +290,7 @@ const Dashboard = () => {
                       )}
                     </button>
                     <span className="task-title">{task.title}</span>
-                    <button 
+                    <button
                       onClick={() => handleDeleteTask(task._id)}
                       className="task-delete"
                       title="Delete Secure Task"

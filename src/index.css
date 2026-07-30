@@ -387,6 +387,7 @@ h1, h2, h3, h4 {
   font-weight: 700;
   letter-spacing: -0.01em;
   background: linear-gradient(to right, white, #e0e7ff);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

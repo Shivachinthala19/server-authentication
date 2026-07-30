@@ -33,7 +33,7 @@ const connectDB = async () => {
     });
     console.log('Successfully connected to MongoDB database.');
   } catch (error) {
-    console.warn('\n⚠️  Could not connect to local MongoDB. Launching MongoDB Memory Server (in-memory MongoDB) fallback...');
+    console.warn(`\n⚠️  Could not connect to local MongoDB (${error.message}). Launching MongoDB Memory Server (in-memory MongoDB) fallback...`);
     
     try {
       const { MongoMemoryServer } = require('mongodb-memory-server');
