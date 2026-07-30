@@ -179,6 +179,7 @@ const Dashboard = () => {
                 <Key className="inline-icon" /> active_token.jwt
               </span>
               <button
+              
                 onClick={() => setShowToken(!showToken)}
                 className="btn-toggle-token"
               >
