@@ -23,41 +23,48 @@ app.get('/', (req, res) => {
 
 // Database connection
 const connectDB = async () => {
-  const localUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/secure-auth-db';
+  const mongoUri = process.env.MONGODB_URI;
   
-  try {
-    console.log('Attempting connection to MongoDB at:', localUri);
-    // Set bufferTimeout to fast-fail if local mongo isn't active
-    await mongoose.connect(localUri, {
-      serverSelectionTimeoutMS: 2000, 
-    });
-    console.log('Successfully connected to MongoDB database.');
-  } catch (error) {
-    console.warn(`\n⚠️  Could not connect to local MongoDB (${error.message}). Launching MongoDB Memory Server (in-memory MongoDB) fallback...`);
-    
+  if (mongoUri) {
     try {
-      const { MongoMemoryServer } = require('mongodb-memory-server');
-      const mongoServer = await MongoMemoryServer.create();
-      const memoryUri = mongoServer.getUri();
-      
-      console.log('In-memory MongoDB Server created successfully.');
-      await mongoose.connect(memoryUri);
-      console.log('Connected to In-memory MongoDB at:', memoryUri);
-    } catch (fallbackError) {
-      console.error('CRITICAL ERROR: Failed to connect to local MongoDB and failed to launch MongoDB Memory Server fallback.');
-      console.error(fallbackError);
-      process.exit(1);
+      console.log('Connecting to configured MONGODB_URI...');
+      await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
+      console.log('Successfully connected to MongoDB database.');
+      return;
+    } catch (error) {
+      console.warn(`Failed to connect to MONGODB_URI: ${error.message}`);
     }
+  }
+
+  // Attempt local MongoDB connection if MONGODB_URI not specified or failed
+  try {
+    console.log('Attempting connection to local MongoDB at mongodb://127.0.0.1:27017/secure-auth-db...');
+    await mongoose.connect('mongodb://127.0.0.1:27017/secure-auth-db', { serverSelectionTimeoutMS: 2000 });
+    console.log('Successfully connected to local MongoDB.');
+    return;
+  } catch (error) {
+    console.warn(`Could not connect to local MongoDB (${error.message}). Trying MongoDB Memory Server fallback...`);
+  }
+
+  // Fallback: MongoDB Memory Server
+  try {
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const mongoServer = await MongoMemoryServer.create();
+    const memoryUri = mongoServer.getUri();
+    console.log('In-memory MongoDB Server created successfully.');
+    await mongoose.connect(memoryUri);
+    console.log('Connected to In-memory MongoDB at:', memoryUri);
+  } catch (fallbackError) {
+    console.error('\n⚠️  Could not initialize In-Memory MongoDB Server:', fallbackError.message);
+    console.error('👉 Tip: Please set the MONGODB_URI environment variable in your deployment platform (e.g. Render) to point to a MongoDB Atlas database.\n');
   }
 };
 
 // Start Server
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`\n🚀 Server running on port ${PORT}`);
-    console.log(`👉 Auth endpoints: http://localhost:${PORT}/api/auth`);
-    console.log(`👉 Tasks endpoints: http://localhost:${PORT}/api/tasks\n`);
-  });
+app.listen(PORT, () => {
+  console.log(`\n🚀 Server running on port ${PORT}`);
+  console.log(`👉 API endpoints: http://localhost:${PORT}/api/auth & http://localhost:${PORT}/api/tasks\n`);
+  connectDB();
 });
