@@ -6,6 +6,8 @@ import {
   Sparkles, CheckSquare, AlertCircle
 } from 'lucide-react';
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 const Dashboard = () => {
   const { user, token, logout, getAuthHeaders } = useAuth();
   const [tasks, setTasks] = useState([]);
@@ -20,7 +22,7 @@ const Dashboard = () => {
       setLoadingTasks(true);
       setTaskError('');
       try {
-        const res = await fetch('/api/tasks', {
+        const res = await fetch(`${API_BASE}/api/tasks`, {
           headers: {
             'Content-Type': 'application/json',
             ...getAuthHeaders(),
@@ -54,7 +56,7 @@ const Dashboard = () => {
     if (!newTaskTitle.trim()) return;
 
     try {
-      const res = await fetch('/api/tasks', {
+      const res = await fetch(`${API_BASE}/api/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +80,7 @@ const Dashboard = () => {
   // Toggle task completion
   const handleToggleTask = async (id, currentStatus) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +103,7 @@ const Dashboard = () => {
   // Delete task
   const handleDeleteTask = async (id) => {
     try {
-      const res = await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`${API_BASE}/api/tasks/${id}`, {
         method: 'DELETE',
         headers: {
           ...getAuthHeaders(),
