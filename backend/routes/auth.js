@@ -51,7 +51,7 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error. Failed to register user.' });
+    res.status(500).json({ message: error.message || 'Server error. Failed to register user.' });
   }
 });
 
@@ -90,7 +90,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error. Failed to authenticate.' });
+    res.status(500).json({ message: error.message || 'Server error. Failed to authenticate.' });
   }
 });
 
@@ -105,7 +105,7 @@ router.get('/me', auth, async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Fetch profile error:', error);
-    res.status(500).json({ message: 'Server error retrieving profile.' });
+    res.status(500).json({ message: error.message || 'Server error retrieving profile.' });
   }
 });
 
